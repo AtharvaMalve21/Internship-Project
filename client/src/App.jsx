@@ -11,6 +11,8 @@ import MyAccomodations from "./pages/MyAccomodations.jsx";
 import ViewPlace from "./pages/ViewPlace.jsx";
 import AccomodationsForm from "./pages/AccomodationsForm.jsx";
 import ViewBooking from "./pages/ViewBooking.jsx";
+import EditBooking from "./pages/EditBooking.jsx";
+import EditPlaces from "./pages/EditPlaces.jsx";
 
 const App = () => {
   return (
@@ -21,11 +23,13 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/places" element={<Places />} />
         <Route path="/places/:id" element={<ViewPlace />} />
+        <Route path="/places/:id/edit" element={<EditPlaces />} />
         <Route path="/account/profile" element={<MyProfile />} />
         <Route path="/account/bookings" element={<MyBooking />} />
         <Route path="/account/places" element={<MyAccomodations />} />
         <Route path="/account/places/new" element={<AccomodationsForm />} />
         <Route path="/account/bookings/:id" element={<ViewBooking />} />
+        <Route path="/account/bookings/:id/edit" element={<EditBooking />} />
       </Route>
     </Routes>
   );

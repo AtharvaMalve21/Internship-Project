@@ -169,21 +169,24 @@ const Home = () => {
                 </div>
 
                 <h2 className="text-lg font-bold text-gray-800 mb-1">
-                  {place.tourType}
+                  {place.title}
                 </h2>
 
                 <div className="flex items-center text-gray-500 text-sm mb-2">
                   <MapPinIcon className="w-5 h-5 text-red-500 mr-1" />
-                  {place.title} {place.address}
+                  {place.address}
                 </div>
                 <p className="text-sm text-gray-600 line-clamp-3">
                   {place.description}
                 </p>
               </div>
-              <div className="px-4 pb-4 text-right">
-                <span className="text-xl font-semibold text-green-600">
-                  ₹{place.price}
-                </span>
+              <div className="pt-4 flex justify-end items-end">
+                <div className="text-right mr-2">
+                  <span className="text-2xl font-bold text-green-600">
+                    ₹{place.price}
+                  </span>
+                  <span className="text-sm text-gray-500 ml-1">/night</span>
+                </div>
               </div>
             </Link>
           ))}

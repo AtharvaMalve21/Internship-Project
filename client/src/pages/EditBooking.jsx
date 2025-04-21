@@ -1,30 +1,39 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext.jsx";
-import { UsersIcon } from "lucide-react";
-import { format } from "date-fns";
 import axios from "axios";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   MapPinIcon,
   EnvelopeIcon,
-  UserIcon,
-  CalendarIcon,
-  CurrencyRupeeIcon,
-  PencilIcon,
-  TrashIcon,
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 
-const ViewBooking = () => {
+const EditBooking = () => {
   const { id } = useParams();
   const { isLoggedIn } = useContext(UserContext);
   const URI = import.meta.env.VITE_BACKEND_URI;
+  const navigate = useNavigate();
 
   const [booking, setBooking] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    checkIn: "",
+    checkOut: "",
+    maxGuests: "",
+  });
+
+  const handleChange = (ev) => {
+    const { name, value } = ev.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const fetchBookingDetails = async () => {
     try {
@@ -35,28 +44,44 @@ const ViewBooking = () => {
         setBooking(data.data);
       }
     } catch (err) {
-      console.log(err.response?.data.message);
+      console.error(err.response?.data.message);
     }
   };
 
-  const deleteBooking = async () => {
+  const editBooking = async (ev) => {
+    ev.preventDefault();
     try {
-      const { data } = await axios.delete(`${URI}/api/booking/${id}`, {
+      const { data } = await axios.put(`${URI}/api/booking/${id}`, formData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
         withCredentials: true,
       });
-
       if (data.success) {
+        setBooking(data.data);
         toast.success(data.message);
         navigate("/account/bookings");
       }
     } catch (err) {
-      toast.error(err.response?.data.message);
+      toast.error(err.response?.data.message || "Something went wrong");
     }
   };
 
   useEffect(() => {
     fetchBookingDetails();
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (booking) {
+      setFormData({
+        name: booking.name,
+        email: booking.email,
+        checkIn: booking.checkIn.split("T")[0],
+        checkOut: booking.checkOut.split("T")[0],
+        maxGuests: booking.maxGuests,
+      });
+    }
+  }, [booking]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) =>
@@ -117,7 +142,7 @@ const ViewBooking = () => {
 
       {/* Place Details */}
       <div className="space-y-4">
-        <h2 className="text-3xl font-bold text-gray-800 flex justify-between items-center">
+        <h2 className="text-3xl font-bold text-gray-800">
           {booking.placeId.title}
         </h2>
         <p className="text-gray-600">{booking.placeId.description}</p>
@@ -139,24 +164,6 @@ const ViewBooking = () => {
 
       {/* Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start relative">
-        {/* Edit + Delete */}
-        <div className="absolute right-0 top-0 flex gap-3 pr-2">
-          <button
-            onClick={() => navigate(`/account/bookings/${booking._id}/edit`)}
-            className="flex items-center gap-1 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-full text-sm transition"
-          >
-            <PencilIcon className="w-4 h-4" />
-            Edit
-          </button>
-          <button
-            onClick={deleteBooking}
-            className="flex items-center gap-1 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-full text-sm transition"
-          >
-            <TrashIcon className="w-4 h-4" />
-            Delete
-          </button>
-        </div>
-
         {/* Owner Info */}
         <div className="bg-white rounded-2xl p-6 shadow-md flex flex-col items-center text-center">
           <img
@@ -171,73 +178,96 @@ const ViewBooking = () => {
           </div>
         </div>
 
-        {/* Booking Info */}
-        <div className="md:col-span-2 bg-gradient-to-br from-blue-50 to-white p-6 rounded-2xl shadow space-y-4">
-          <h3 className="text-2xl font-semibold text-blue-900 mb-3">
-            Booking Information
+        {/* Booking Info Form */}
+        <form
+          onSubmit={editBooking}
+          className="bg-white rounded-2xl p-6 shadow-md space-y-4 col-span-2"
+        >
+          <h3 className="text-xl font-semibold mb-2 text-gray-700">
+            Edit Booking
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
-            <div className="flex items-center gap-2">
-              <UserIcon className="w-5 h-5 text-blue-600" />
-              <p>
-                Booked For: <strong>{booking.name}</strong>
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <EnvelopeIcon className="w-5 h-5 text-blue-600" />
-              <p>
-                Email: <strong>{booking.email}</strong>
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-blue-600" />
-              <p>
-                Check-In:{" "}
-                <strong>
-                  {new Date(booking.checkIn).toLocaleDateString()}
-                </strong>
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-blue-600" />
-              <p>
-                Check-Out:{" "}
-                <strong>
-                  {new Date(booking.checkOut).toLocaleDateString()}
-                </strong>
-              </p>
-            </div>
-            <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl shadow-sm">
-              <div className="flex items-center gap-2 text-blue-600">
-                <UsersIcon className="w-5 h-5" />
-                <span className="font-medium text-gray-700">
-                  Guests: <strong>{booking.maxGuests}</strong>
-                </span>
-              </div>
 
-              <div className="text-sm text-gray-500 ml-auto">
-                Booked on:{" "}
-                <span className="font-medium">
-                  {booking.createdAt
-                    ? format(
-                        new Date(booking.createdAt),
-                        "dd MMM yyyy, hh:mm a"
-                      )
-                    : "Unknown"}
-                </span>
-              </div>
+          <div className="space-y-1">
+            <label htmlFor="name" className="block text-gray-600">
+              Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor="email" className="block text-gray-600">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label htmlFor="checkIn" className="block text-gray-600">
+                Check-In
+              </label>
+              <input
+                type="date"
+                name="checkIn"
+                value={formData.checkIn}
+                onChange={handleChange}
+                className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
             </div>
-            <div className="flex items-center gap-2">
-              <CurrencyRupeeIcon className="w-5 h-5 text-blue-600" />
-              <p>
-                Total Price: <strong>₹{booking.totalPrice}</strong>
-              </p>
+            <div className="space-y-1">
+              <label htmlFor="checkOut" className="block text-gray-600">
+                Check-Out
+              </label>
+              <input
+                type="date"
+                name="checkOut"
+                value={formData.checkOut}
+                onChange={handleChange}
+                className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
             </div>
           </div>
-        </div>
+
+          <div className="space-y-1">
+            <label htmlFor="maxGuests" className="block text-gray-600">
+              Max Guests
+            </label>
+            <input
+              type="number"
+              name="maxGuests"
+              value={formData.maxGuests}
+              onChange={handleChange}
+              className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200"
+          >
+            Save Changes
+          </button>
+        </form>
       </div>
     </div>
   );
 };
 
-export default ViewBooking;
+export default EditBooking;

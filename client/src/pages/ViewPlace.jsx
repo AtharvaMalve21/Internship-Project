@@ -117,8 +117,12 @@ const ViewPlace = () => {
 
   useEffect(() => {
     fetchPlaceDetails();
-    fetchReviews();
   }, [isLoggedIn]);
+
+
+  useEffect(() => {
+    fetchReviews();
+  },[id])
 
   const sliderSettings = {
     dots: true,
@@ -146,7 +150,12 @@ const ViewPlace = () => {
         <div className="flex justify-between items-center flex-wrap gap-4">
           <h1 className="text-3xl font-bold text-gray-800">{place.title}</h1>
           <div className="flex gap-3">
-            <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition">
+            <button
+              onClick={() => {
+                navigate(`/places/${place._id}/edit`);
+              }}
+              className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition"
+            >
               <Pencil className="w-5 h-5" />
             </button>
             <button
@@ -234,9 +243,13 @@ const ViewPlace = () => {
               </ul>
             </div>
 
-            <div className="text-2xl font-bold text-green-600">
-            ₹{place.price}
-              <span className="text-sm text-gray-500 font-medium"></span>
+            <div className="pt-4 flex justify-end items-end">
+              <div className="text-right">
+                <span className="text-2xl font-bold text-green-600">
+                  ₹{place.price}
+                </span>
+                <span className="text-sm text-gray-500 ml-1">/night</span>
+              </div>
             </div>
 
             {/* Review Form */}
@@ -326,7 +339,7 @@ const ViewPlace = () => {
                     </p>
                     <div className="flex items-center gap-3 mt-3">
                       <img
-                        src={`${URI}/${review.createdBy.profilePic}`}
+                        src={`${URI}/${review?.createdBy.profilePic}`}
                         alt="Reviewer Profile"
                         className="w-10 h-10 rounded-full object-cover border"
                       />

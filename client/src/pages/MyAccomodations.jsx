@@ -102,11 +102,13 @@ const MyAccomodations = () => {
                 </div>
 
                 {/* Move this price block below everything, aligned right */}
-                <div className="mt-4 text-right">
-                  <span className="text-xl font-semibold text-green-600">
-                    ${place.price}
-                  </span>
-                  <span className="text-sm text-gray-500"></span>
+                <div className="pt-4 flex justify-end items-end">
+                  <div className="text-right">
+                    <span className="text-2xl font-bold text-green-600">
+                      ₹{place.price}
+                    </span>
+                    <span className="text-sm text-gray-500 ml-1">/night</span>
+                  </div>
                 </div>
               </div>
             </Link>

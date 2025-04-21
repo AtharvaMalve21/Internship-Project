@@ -217,6 +217,7 @@ exports.updatePlace = async (req, res) => {
       });
     }
 
+    //additional check
     if (user.role !== "admin") {
       return res.status(401).json({
         success: false,
@@ -235,7 +236,7 @@ exports.updatePlace = async (req, res) => {
       maxGuests,
     } = req.body;
 
-    const photos = req.file?.path;
+    const photos = req.files?.map((file) => file.path);
 
     place.title = title || place.title;
     place.address = address || place.address;

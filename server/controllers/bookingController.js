@@ -1,6 +1,10 @@
 const Booking = require("../models/bookingModel");
 const Place = require("../models/placesModel");
 const User = require("../models/userModel");
+const transporter = require("../utils/sendMailer");
+const dotenv = require("dotenv");
+const { bookingTemplate } = require("../utils/bookingTemplate");
+dotenv.config();
 
 exports.addNewBooking = async (req, res) => {
   try {
@@ -69,9 +73,24 @@ exports.addNewBooking = async (req, res) => {
       totalPrice,
     });
 
-    res.status(201).json({
+    await transporter.sendMail({
+      from: process.env.MAIL_HOST,
+      to: [user.email, email],
+      subject: `Booking Confirmation ${place.title} from ${place.checkIn} to ${place.checkOut}`,
+      html: bookingTemplate(
+        user.name,
+        user.email,
+        name,
+        email,
+        totalPrice,
+        checkIn,
+        checkOut
+      ),
+    });
+
+    return res.status(201).json({
       success: true,
-      message: "Booking successful!",
+      message: "Booking confirmation is sent to your email",
       booking,
     });
   } catch (err) {
@@ -172,6 +191,109 @@ exports.viewBooking = async (req, res) => {
     res.status(500).json({
       success: false,
       message: err.message,
+    });
+  }
+};
+
+exports.editBooking = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found. Login again.",
+      });
+    }
+
+    const { id } = req.params;
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "No booking found.",
+      });
+    }
+
+    // Only the booking owner can edit
+    if (booking.owner.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to edit this booking.",
+      });
+    }
+
+    const { name, email, checkIn, checkOut, maxGuests } = req.body;
+
+    // Basic validation
+    if (!name || !email || !checkIn || !checkOut || !maxGuests) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill in all the required details.",
+      });
+    }
+
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
+    const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+    if (nights <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Check-out must be after check-in.",
+      });
+    }
+
+    // Fetch place to calculate new total price
+    const place = await Place.findById(booking.placeId);
+    if (!place) {
+      return res.status(404).json({
+        success: false,
+        message: "Associated place not found.",
+      });
+    }
+
+    const totalPrice = place.price * nights * maxGuests;
+
+    // Update booking
+    booking.name = name;
+    booking.email = email;
+    booking.checkIn = checkIn;
+    booking.checkOut = checkOut;
+    booking.maxGuests = maxGuests;
+    booking.totalPrice = totalPrice;
+
+    await booking.save();
+
+    // Send updated confirmation email
+    await transporter.sendMail({
+      from: process.env.MAIL_HOST,
+      to: [user.email, email],
+      subject: `Booking Updated: ${place.title} (${checkIn} to ${checkOut})`,
+      html: bookingTemplate(
+        user.name,
+        user.email,
+        name,
+        email,
+        totalPrice,
+        checkIn,
+        checkOut
+      ),
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Booking updated successfully.",
+      booking,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Server error: " + err.message,
     });
   }
 };
