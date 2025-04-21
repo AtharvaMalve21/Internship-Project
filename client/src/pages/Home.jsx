@@ -171,7 +171,6 @@ const Home = () => {
                 <h2 className="text-lg font-bold text-gray-800 mb-1">
                   {place.title}
                 </h2>
-
                 <div className="flex items-center text-gray-500 text-sm mb-2">
                   <MapPinIcon className="w-5 h-5 text-red-500 mr-1" />
                   {place.address}
@@ -180,6 +179,9 @@ const Home = () => {
                   {place.description}
                 </p>
               </div>
+              <h2 className="text-lg font-bold text-gray-800 ml-5">
+                  {place.tourType}
+                </h2>
               <div className="pt-4 flex justify-end items-end">
                 <div className="text-right mr-2">
                   <span className="text-2xl font-bold text-green-600">
@@ -187,7 +189,7 @@ const Home = () => {
                   </span>
                   <span className="text-sm text-gray-500 ml-1">/night</span>
                 </div>
-              </div>
+              </div>  
             </Link>
           ))}
         </div>
