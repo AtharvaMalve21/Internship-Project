@@ -47,9 +47,11 @@ const MyProfile = () => {
             <span className="text-gray-500 text-sm">{user?.phone}</span>
           </div>
           <div>
-            <span className="text-gray-500 text-sm">
-              Total bookings: {userBooking.length}
-            </span>
+           <span className="text-gray-500 text-sm">
+              {user?.role === "admin"
+                ? ""
+                : `Total bookings: ${userBooking.length}`}
+            </span> 
             
           </div>
 
